@@ -3,7 +3,7 @@ import { PGJSON } from "../types/PGJSON";
 import { PGChunk } from "../types/PGChunk";
 import { encode } from "gpt-3-encoder";
 const pdf = require("pdf-parse");
-import fs from "fs";
+var formatISO = require('date-fns/formatISO'); 
 const CHUNK_SIZE = 400;
 
 function render_page(pageData: any) {
@@ -30,14 +30,11 @@ function render_page(pageData: any) {
 }
 
 export const handleFile = {
-  getTextFromPDF: async (url: string) => {
+  getTextFromPDF: async (file: any) => {
     return new Promise(function(resolve, reject) {
       let essays: any[] = [];
       let essay: PGEssay = {
-        title: "",
-        url: "",
         date: "",
-        thanks: "",
         content: "",
         length: 0,
         tokens: 0,
@@ -47,14 +44,10 @@ export const handleFile = {
       let options = {
         pagerender: render_page
       }
-      let dataBuffer = fs.readFileSync(url);
-      pdf(dataBuffer, options).then(async function(data:any) {
+      pdf(file, options).then(async function(data:any) {
         trimmedContent = data.text.trim(); 
         essay = {
-          title: "",
-          url: "",
-          date: "",
-          thanks: "",
+          date: formatISO(new Date()),
           content: trimmedContent,
           length: trimmedContent.length,
           tokens: encode(trimmedContent).length,
@@ -63,19 +56,19 @@ export const handleFile = {
         const chunkedEssay = await handleFile.chunkEssay(essay);
         essays.push(chunkedEssay);
         const json: PGJSON = {
-          current_date: "2023-06-06",
+          current_date: formatISO(new Date()),
           author: "Andre Quintino",
-          url: "www.prodam.sp.gov.br",
           length: essays.reduce((acc, essay) => acc + essay.length, 0),
           tokens: essays.reduce((acc, essay) => acc + essay.tokens, 0),
           essays
-        };        
+        };       
+        console.log(json);
         resolve(JSON.stringify(json));        
       });       
     });    
   },
   chunkEssay: async (essay: PGEssay) => {
-    const { title, url, date, thanks, content, ...chunklessSection } = essay;
+    const { date, content, ...chunklessSection } = essay;
   
     let essayTextChunks = [];
   
@@ -109,10 +102,7 @@ export const handleFile = {
       const trimmedText = text.trim();
   
       const chunk: PGChunk = {
-        essay_title: title,
-        essay_url: url,
         essay_date: date,
-        essay_thanks: thanks,
         content: trimmedText,
         content_length: trimmedText.length,
         content_tokens: encode(trimmedText).length,

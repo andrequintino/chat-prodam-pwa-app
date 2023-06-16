@@ -52,6 +52,16 @@ export const openai = {
 
     return reqMessages;
   },
+  getEmbedding: async (query: string) => {
+    const input = query.replace(/\n/g, " ");
+    const embeddingResponse = await api.createEmbedding({
+      model: "text-embedding-ada-002",
+      input
+    });
+
+    const [{ embedding }] = embeddingResponse.data.data;
+    return embedding;
+  },
   generateEmbeddings: async (essays: PGEssay[]) => {
     for (let i = 0; i < essays.length; i++) {
       const section = essays[i];
@@ -59,22 +69,14 @@ export const openai = {
       for (let j = 0; j < section.chunks.length; j++) {
         const chunk = section.chunks[j];
   
-        const { essay_title, essay_url, essay_date, essay_thanks, content, content_length, content_tokens } = chunk;
+        const { essay_date, content, content_length, content_tokens } = chunk;
   
-        const embeddingResponse = await api.createEmbedding({
-          model: "text-embedding-ada-002",
-          input: content
-        });
-  
-        const [{ embedding }] = embeddingResponse.data.data;
+        const embedding = await openai.getEmbedding(content);
   
         const { data, error } = await supabaseAdmin
           .from("pg")
           .insert({
-            essay_title,
-            essay_url,
             essay_date,
-            essay_thanks,
             content,
             content_length,
             content_tokens,

@@ -3,6 +3,29 @@ import { parseForm, FormidableError } from "../../utils/parse-form";
 import { handleFile } from "../../utils/handleFile";
 import { PGJSON } from "../../types/PGJSON";
 import { openai } from "../../utils/openai";
+import { Writable } from "stream";
+import { Buffer } from "buffer";
+
+const fileConsumer = (acc: any) => {
+  const writable = new Writable({
+    write: (chunk: any, _enc: any, next: any) => {
+      acc.push(chunk);
+      next();
+    },
+  });
+
+  return writable;
+};
+
+const formidableConfig = {
+  keepExtensions: true,
+  maxFileSize: 10_000_000,
+  maxFieldsSize: 10_000_000,
+  maxFields: 2,
+  allowEmptyFiles: false,
+  multiples: false,
+};
+
 const handler = async (
   req: NextApiRequest,
   res: NextApiResponse<{
@@ -20,12 +43,17 @@ const handler = async (
     });
     return;
   }
-  // Just after the "Method Not Allowed" code
+  
   try {
-    const { fields, files } = await parseForm(req);
-    const file = files.media;
-    let url = Array.isArray(file) ? file.map((f) => f.filepath) : file.filepath;    
-    const json = await handleFile.getTextFromPDF(url as string);
+    const chunks: any[] = [];
+    const { fields, files } = await parseForm(req, {
+      ...formidableConfig,
+      // consume this, otherwise formidable tries to save the file to disk
+      fileWriteStreamHandler: () => fileConsumer(chunks),
+    });
+
+    const contents = Buffer.concat(chunks);    
+    const json = await handleFile.getTextFromPDF(contents);
     const trainingData: PGJSON = JSON.parse(json as string);
     await openai.generateEmbeddings(trainingData.essays);
     const message = "Arquivo carregado com sucesso!";

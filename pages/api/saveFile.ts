@@ -55,7 +55,7 @@ const handler = async (
     const contents = Buffer.concat(chunks);    
     const json = await handleFile.getTextFromPDF(contents);
     const trainingData: PGJSON = JSON.parse(json as string);
-    await openai.generateEmbeddings(trainingData.essays);
+    await openai.saveEmbeddings(trainingData.essays);
     const message = "Arquivo carregado com sucesso!";
     res.status(200).json({
       data: {

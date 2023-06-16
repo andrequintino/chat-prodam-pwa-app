@@ -1,6 +1,6 @@
 import { ChatMessage } from "../types/ChatMessage";
 import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum, Configuration, OpenAIApi } from "openai";
-import { find, supabaseAdmin } from './supabase';
+import { database } from './supabase';
 import { config } from './config';
 import { PGChunk } from "../types/PGChunk";
 import endent from "endent";
@@ -15,13 +15,12 @@ export const openai = {
   generate: async (messages: ChatCompletionRequestMessage[]) => {
     try {
       const query = messages[messages.length -1].content;
-      const chunks: PGChunk[] = await find.chunks(query, config.OPENAI_API_Key!, 5);
+      const chunks: PGChunk[] = await database.findChunks(query, config.OPENAI_API_Key!, 5);
       const prompt = endent`
-        Use o texto a seguir, porém não mencione que o utilizou, para responder a seguinte questão: "${query}"
+        Use o texto a seguir, sem mencionar na resposta que o utilizou, para responder a seguinte questão: "${query}"
 
         ${chunks?.map((d: any) => d.content).join("\n\n")}
       `;
-      console.log(prompt);
       messages[messages.length -1].content = prompt;
       const response = await api.createChatCompletion({
         model: 'gpt-3.5-turbo',
@@ -62,33 +61,16 @@ export const openai = {
     const [{ embedding }] = embeddingResponse.data.data;
     return embedding;
   },
-  generateEmbeddings: async (essays: PGEssay[]) => {
+  saveEmbeddings: async (essays: PGEssay[]) => {
     for (let i = 0; i < essays.length; i++) {
       const section = essays[i];
   
       for (let j = 0; j < section.chunks.length; j++) {
         const chunk = section.chunks[j];
-  
-        const { essay_date, content, content_length, content_tokens } = chunk;
-  
+        const { content } = chunk;
         const embedding = await openai.getEmbedding(content);
   
-        const { data, error } = await supabaseAdmin
-          .from("pg")
-          .insert({
-            essay_date,
-            content,
-            content_length,
-            content_tokens,
-            embedding
-          })
-          .select("*");
-  
-        if (error) {
-          console.log("error", error);
-        } else {
-          console.log("saved", i, j);
-        }
+        await database.insertData(chunk, embedding);
   
         await new Promise((resolve) => setTimeout(resolve, 200));
       }

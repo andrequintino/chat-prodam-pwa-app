@@ -1,0 +1,33 @@
+{
+    "theme_color": "#f9f9f9",
+    "background_color": "rgb(30,58,138)",
+    "display": "standalone",    
+    "orientation": "portrait",
+    "scope": "/",
+    "start_url": "/",
+    "name": "ChatProdam",
+    "short_name": "ChatProdam",
+    "description": "Comunica\u00e7\u00e3o baseada na tecnologia ChatGPT",
+    "icons": [
+        {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-256x256.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

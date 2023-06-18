@@ -64,10 +64,10 @@ const handler = async (
       error: null,
     });
   } catch (e) {
+    console.error(e);
     if (e instanceof FormidableError) {
       res.status(e.httpCode || 400).json({ data: null, error: e.message });
-    } else {
-      console.error(e);
+    } else {      
       res.status(500).json({ data: null, error: "Internal Server Error" });
     }
   }

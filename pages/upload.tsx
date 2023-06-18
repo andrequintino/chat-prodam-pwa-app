@@ -81,6 +81,7 @@ const Upload: NextPage = () => {
         setSaveStatus(data.message);
       } catch (error: any) {
         setLoading(false);
+        console.log(error);
         setSaveStatus("Erro ao carregar arquivo: " + error);
       }
     }

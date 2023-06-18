@@ -4,7 +4,7 @@ import { PGChunk } from "../types/PGChunk";
 import { encode } from "gpt-3-encoder";
 const pdf = require("pdf-parse");
 var formatISO = require('date-fns/formatISO'); 
-const CHUNK_SIZE = 400;
+const CHUNK_SIZE = 500;
 
 function render_page(pageData: any) {
   let render_options = {
@@ -61,8 +61,7 @@ export const handleFile = {
           length: essays.reduce((acc, essay) => acc + essay.length, 0),
           tokens: essays.reduce((acc, essay) => acc + essay.tokens, 0),
           essays
-        };       
-        console.log(json);
+        };               
         resolve(JSON.stringify(json));        
       });       
     });    

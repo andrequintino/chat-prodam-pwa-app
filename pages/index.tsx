@@ -92,7 +92,6 @@ const Home: NextPage = () => {
         id: newChatId,
         title: message,
         messages: [
-          { id: uuidv4(), author: 'system', body: 'Você é o chatProdam, um assistente que deve responder corretamente sobre a empresa Prodam (Empresa de Tecnologia da Informação e Comunicação do Município de São Paulo). Substitua Prodam-SP por Prodam. Tente usar suas próprias palavras quando possível. Seja preciso, útil, conciso e claro. Caso não encontre a informação no texto fornecido, responda da seguinte com o seguinte texto: Não consegui encontrar a informação desejada.' },
           { id: uuidv4(), author: 'me', body: message }
         ]
       },...chatList]);

@@ -6,11 +6,12 @@ export const config = {
   runtime: "edge"
 };
 export const database = {
-  findChunks: async (query: string, apiKey: string, matches: number) => {
-    const embedding = await openai.getEmbedding(query);
+  findChunks: async (query: string, matches: number) => {
+    const input = query.replace(/\n/g, " ");
+    const embedding = await openai.getEmbedding(input);
     const { data: chunks, error } = await supabaseAdmin.rpc("pg_search", {
       query_embedding: embedding,
-      similarity_threshold: 0.5,
+      similarity_threshold: 0.01,
       match_count: matches
     });
 
